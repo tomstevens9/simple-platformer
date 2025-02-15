@@ -1,0 +1,30 @@
+name: Clang Format Check
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fd-find clang-format
+          sudo ln -s $(which fdfind) /usr/local/bin/fd
+          fd --version  # Just to verify it works
+          clang-format --version
+
+      - name: Check code formatting
+        run: |
+          # Find all .c and .h files in the src directory and
+          # pass them to clang-format.
+          fd --extension c --extension h --type f \
+            --exec-batch clang-format --dry-run -Werror src/
+
