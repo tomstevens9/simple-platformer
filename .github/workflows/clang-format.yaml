@@ -25,6 +25,6 @@ jobs:
         run: |
           # Find all .c and .h files in the src directory and
           # pass them to clang-format.
-          fd --extension c --extension h --type f \
-            --exec-batch clang-format --dry-run -Werror src/
+          fd --extension c --extension h --type f . 'src/' \
+            --exec-batch clang-format --dry-run -Werror
 
