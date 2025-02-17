@@ -1,4 +1,4 @@
-name: Clang Format Check
+name: Static Analysis
 
 on:
   push:
@@ -7,7 +7,28 @@ on:
     branches: [ "master" ]
 
 jobs:
-  format-check:
+  clang-tidy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fd-find clang-tidy
+          sudo ln -s $(which fdfind) /usr/local/bin/fd
+          fd --version  # Just to verify it works
+          clang-format --version
+
+      - name: Run clang-tidy
+        run: |
+          # Find all .c and .h files in the src directory and
+          # pass them to clang-format.
+          fd --extension c --extension h --type f . 'src/' \
+            --exec-batch clang-tidy
+
+  clang-format:
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
@@ -21,7 +42,7 @@ jobs:
           fd --version  # Just to verify it works
           clang-format --version
 
-      - name: Check code formatting
+      - name: Run clang-format
         run: |
           # Find all .c and .h files in the src directory and
           # pass them to clang-format.
