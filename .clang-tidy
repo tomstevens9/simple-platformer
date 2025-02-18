@@ -1,19 +1,22 @@
 ---
-Checks:          '*,-llvmlibc-restrict-system-libc-headers'
+Checks:
+  - "-*"
+  - "clang-diagnostic-*"
+  - "bugprone-*"
+  - "performance-*"
+  - "readability-*"
+  - "misc-*"
+  - "-modernize-*"          # modernisation checks are designed for C++ code
+  - "-cppcoreguidelines-*"   # many guidelines assume C++ semantics
+  # Ideally this wouldn't be skipped, but it causes issues with SDL.
+  # TODO Investigate
+  - "-misc-include-cleaner"
 WarningsAsErrors: ''
 HeaderFileExtensions:
-  - ''
   - h
-  - hh
-  - hpp
-  - hxx
 ImplementationFileExtensions:
   - c
-  - cc
-  - cpp
-  - cxx
 HeaderFilterRegex: ''
-ExcludeHeaderFilterRegex: ''
 FormatStyle:     none
 User:            tstevens
 CheckOptions:
