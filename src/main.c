@@ -11,18 +11,53 @@ enum {
 
 static const float GRAVITY = 0.3F;
 
+static char const *const WINDOW_TITLE = "Simple Platformer";
+
 static const SDL_Color COLOR_BLACK = {0, 0, 0, 255};
 static const SDL_Color COLOR_GREY = {100, 100, 100, 255};
 static const SDL_Color COLOR_GREEN = {0, 255, 0, 255};
 
-int main(void) {
-    SDL_Init(SDL_INIT_VIDEO);
+typedef struct {
+    SDL_Window *const window;
+    SDL_Renderer *const renderer;
+} SDLContext;
 
-    SDL_Window *window = SDL_CreateWindow(
-        "Simple Platformer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-        SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+void fatal_error(const char *message) {
+    SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s SDL Error: %s", message,
+                 SDL_GetError());
+    exit(EXIT_FAILURE);
+}
+
+// TODO rename
+SDLContext sdl_initialise_sdl() {
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
+        fatal_error("SDL failed to initialise.");
+    }
+
+    SDL_Window *window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED,
+                                          SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH,
+                                          SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    if (!window) {
+        fatal_error("SDL failed to create window.");
+    }
     SDL_Renderer *renderer = SDL_CreateRenderer(
         window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!renderer) {
+        fatal_error("SDL failed to create renderer.");
+    }
+    SDLContext ctx = {.window = window, .renderer = renderer};
+    return ctx;
+}
+
+void sdl_cleanup_sdl(SDLContext *ctx) {
+    SDL_DestroyRenderer(ctx->renderer);
+    SDL_DestroyWindow(ctx->window);
+    SDL_Quit();
+}
+
+int main(void) {
+
+    SDLContext ctx = sdl_initialise_sdl();
 
     // Initialize player and platform
     SDL_Rect player = {(SCREEN_WIDTH / 2) - (PLAYER_SIZE / 2),
@@ -34,7 +69,6 @@ int main(void) {
     float vel_x = 0;
     float vel_y = 0;
     SDL_bool is_jumping = SDL_FALSE;
-
     SDL_bool running = SDL_TRUE;
     while (running) {
         SDL_Event event;
@@ -85,25 +119,23 @@ int main(void) {
         }
 
         // Rendering
-        SDL_SetRenderDrawColor(renderer, COLOR_BLACK.r, COLOR_BLACK.g,
+        SDL_SetRenderDrawColor(ctx.renderer, COLOR_BLACK.r, COLOR_BLACK.g,
                                COLOR_BLACK.b, COLOR_BLACK.a);
-        SDL_RenderClear(renderer);
+        SDL_RenderClear(ctx.renderer);
 
         // Draw platform
-        SDL_SetRenderDrawColor(renderer, COLOR_GREY.r, COLOR_GREY.g,
+        SDL_SetRenderDrawColor(ctx.renderer, COLOR_GREY.r, COLOR_GREY.g,
                                COLOR_GREY.b, COLOR_GREY.a);
-        SDL_RenderFillRect(renderer, &platform);
+        SDL_RenderFillRect(ctx.renderer, &platform);
 
         // Draw player
-        SDL_SetRenderDrawColor(renderer, COLOR_GREEN.r, COLOR_GREEN.g,
+        SDL_SetRenderDrawColor(ctx.renderer, COLOR_GREEN.r, COLOR_GREEN.g,
                                COLOR_GREEN.b, COLOR_GREEN.a);
-        SDL_RenderFillRect(renderer, &player);
+        SDL_RenderFillRect(ctx.renderer, &player);
 
-        SDL_RenderPresent(renderer);
+        SDL_RenderPresent(ctx.renderer);
     }
 
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    sdl_cleanup_sdl(&ctx);
     return 0;
 }
