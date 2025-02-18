@@ -16,17 +16,21 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y fd-find clang-tidy
+          sudo apt-get install -y fd-find clang-tidy libsdl2-dev
           sudo ln -s $(which fdfind) /usr/local/bin/fd
           fd --version  # Just to verify it works
           clang-format --version
+
+      - name: Export compile commands 
+        run: |
+          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Run clang-tidy
         run: |
           # Find all .c and .h files in the src directory and
           # pass them to clang-format.
           fd --extension c --extension h --type f . 'src/' \
-            --exec-batch clang-tidy
+            --exec-batch clang-tidy -p build
 
   clang-format:
     runs-on: ubuntu-latest
