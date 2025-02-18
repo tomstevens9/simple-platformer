@@ -16,8 +16,8 @@ jobs:
 
       - name: Configure the project
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          ./scripts/configure.sh
 
       - name: Build
         run: |
-          cmake --build build --config Release
+          ./scripts/build.sh
